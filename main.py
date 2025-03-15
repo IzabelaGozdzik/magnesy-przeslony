@@ -2,67 +2,81 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-c = 3e8  # Prędkość światła w próżni [m/s]
-f = 2.21e9  # Częstotliwość [Hz]
-minS = 17  # Wymagana skuteczność ekranowania [dB]
-tłumienie = 14  # Wartość tłumienia [dB]
-rozmiar_płyty = 0.5  # Wymiar płyty [m] (50 cm)
+najlepsze = {
+    "odstep": 0,
+    "odstepLiczba": 0,
+    "przekatna": 0,
+    "otworyRzad": 0,
+    "otworyWszystkie": 0,
+    "ppOtworow": 0,
+    "tlumienie": 0,
+}
 
-# 1. Obliczenie długości fali
-lam = c / f
-print(f"Długość fali: {lam:.4f} m")
+c = 3e8  # Predkosc swiatla [m/s]
+f = 2.21e9  # Czestotliwosc [Hz]
+minTlumienie = 14  # Przypisana wartosc tlumienia [dB]
+rozmiarPlyty = 0.5  # Wymiar plyty [m]
+minMargines = 0.003  # Minimalna odleglosc od marginesow [m]
 
-# 2. Obliczenie maksymalnego wymiaru liniowego otworu
-# Skuteczność ekranowania dla pojedynczego otworu: S = 20 * log(lambda / (2 * l))
-# Przekształcamy wzór, aby obliczyć l:
-l = lam / (2 * 10 ** (minS / 20))
-print(f"Maksymalny wymiar liniowy otworu: {l:.6f} m")
+lam = round(c / f, 4)  # Obliczenie dlugosci fali [m]
 
-# 3. Obliczenie minimalnej odległości między otworami
-# Dla liniowego rzędu otworów, skuteczność ekranowania spada o 20 * log(sqrt(n))
-# Chcemy, aby skuteczność ekranowania nie była gorsza niż 17 dB, więc:
-# 17 dB = 20 * log(sqrt(n)) + tłumienie
-# Przekształcamy wzór, aby obliczyć n:
-n = 10**((minS - tłumienie) / 20)
-minOdl = l / math.sqrt(n)
-print(f"Minimalna odległość między otworami: {minOdl:.6f} m")
+i = 10
+while i >= 2:
+    odstep = lam / i  # Minimalny odstep miedzy otworami [m]
+    przekatna = round(lam / 2, 3)
 
-# 4. Obliczenie maksymalnej liczby otworów na płytce
-# Zakładamy, że otwory są kwadratowe i rozmieszczone w równych odstępach
-pole_powierzchni_otworu = l ** 2  # Pole powierzchni jednego otworu
-całkowite_pole_powierzchni_płyty = rozmiar_płyty**2  # Całkowite pole powierzchni płyty
+    while przekatna > 0:
+        bok = round(przekatna / math.sqrt(2), 3)
+        otworyRzad = (rozmiarPlyty - minMargines * 2 + odstep) // (bok + odstep)
+        otworyWszystkie = otworyRzad ** 2
+        margines = rozmiarPlyty - otworyRzad * (bok + odstep) - odstep
 
-# Maksymalna liczba otworów:
-maksymalna_liczba_otworów = int(całkowite_pole_powierzchni_płyty / (pole_powierzchni_otworu + minOdl ** 2))
-print(f"Maksymalna liczba otworów: {maksymalna_liczba_otworów}")
+        if margines < minMargines:
+            przekatna -= 0.001
+            continue
 
-# 5. Obliczenie skuteczności ekranowania dla zadanej liczby otworów
-# Skuteczność ekranowania dla wielu otworów: S = -20 * log(sqrt(n))
-S = -20 * math.log10(math.sqrt(maksymalna_liczba_otworów))
-print(f"Skuteczność ekranowania dla {maksymalna_liczba_otworów} otworów: {S:.2f} dB")
+        sJednego = round(20 * math.log10(lam / (2 * przekatna)), 4)
+        otworyWLambdaPrzez2 = (lam / 2 - odstep) // (bok + odstep)
+
+        if otworyWLambdaPrzez2 == 0:
+            przekatna -= 0.001
+            continue
+        sLambdaPrzez2 = round(-20 * math.log10(math.sqrt(otworyWLambdaPrzez2)), 4)
+        ppOtworow = round(bok ** 2 * otworyWszystkie, 4)
+        tlumienie = round(sJednego + sLambdaPrzez2)
+        if tlumienie < 14:
+            przekatna -= 0.001
+            continue
+
+        if najlepsze["ppOtworow"] < ppOtworow:
+            najlepsze["odstep"] = i
+            najlepsze["odstepLiczba"] = odstep
+            najlepsze["przekatna"] = przekatna
+            najlepsze["otworyRzad"] = otworyRzad
+            najlepsze["otworyWszystkie"] = otworyWszystkie
+            najlepsze["ppOtworow"] = ppOtworow
+            najlepsze["tlumienie"] = tlumienie
+
+        przekatna -= 0.001
+
+    i -= 0.5
 
 # 6. Wizualizacja graficzna rozłożenia otworów na przesłonie
 fig, ax = plt.subplots(figsize=(8, 8))
 
 # Ustawienie granic wykresu
-ax.set_xlim(0, rozmiar_płyty)
-ax.set_ylim(0, rozmiar_płyty)
-
-# Obliczenie liczby otworów wzdłuż jednej osi
-liczba_otworów_w_rzędzie = int(math.sqrt(maksymalna_liczba_otworów))
-
-# Obliczenie odstępów między otworami
-odstepy = (rozmiar_płyty - liczba_otworów_w_rzędzie * l) / (liczba_otworów_w_rzędzie + 1)
+ax.set_xlim(0, rozmiarPlyty)
+ax.set_ylim(0, rozmiarPlyty)
 
 # Rysowanie otworów
-for i in range(liczba_otworów_w_rzędzie):
-    for j in range(liczba_otworów_w_rzędzie):
-        x = odstepy + i * (l + odstepy)
-        y = odstepy + j * (l + odstepy)
-        ax.add_patch(patches.Rectangle((x, y), l, l, edgecolor='blue', facecolor='none'))
+for i in range(najlepsze["otworyRzad"]):
+    for j in range(najlepsze["otworyRzad"]):
+        x = najlepsze["odstep"] + i * (najlepsze["przekatna"] + najlepsze["odstep"])
+        y = najlepsze["odstep"] + j * (najlepsze["przekatna"] + najlepsze["odstep"])
+        ax.add_patch(patches.Rectangle((x, y), najlepsze["przekatna"], najlepsze["przekatna"], edgecolor='blue', facecolor='none'))
 
 # Dodanie tytułu i etykiet osi
-ax.set_title(f"Rozłożenie {maksymalna_liczba_otworów} otworów na przesłonie")
+ax.set_title(f"Rozłożenie otworów na przesłonie")
 ax.set_xlabel("Szerokość [m]")
 ax.set_ylabel("Wysokość [m]")
 
