@@ -5,6 +5,7 @@ import matplotlib.patches as patches
 najlepsze = {
     "odstep": 0,
     "odstep_wartosc": 0,
+    "bok": 0,
     "przekatna": 0,
     "otwory_w_rzedzie": 0,
     "otwory_wszystkie": 0,
@@ -23,7 +24,7 @@ lam = round(c / f, 4)  # Dlugosc fali [m]
 i = 10
 while i >= 2:
     odstep = lam / i  # Minimalny odstep miedzy otworami [m]
-    przekatna = round(lam / 2, 4)
+    przekatna = round(lam / 2, 8)
 
     while przekatna > 0:
         bok = round(przekatna / math.sqrt(2), 3)
@@ -51,7 +52,8 @@ while i >= 2:
         if najlepsze["pp_otworow"] < pp_otworow:
             najlepsze["odstep"] = i
             najlepsze["odstep_wartosc"] = odstep
-            najlepsze["przekatna"] = przekatna
+            najlepsze["bok"] = bok
+            najlepsze["przekatna"] = round(przekatna,8)
             najlepsze["otwory_w_rzedzie"] = int(otwory_w_rzedzie)
             najlepsze["otwory_wszystkie"] = int(otwory_wszystkie)
             najlepsze["pp_otworow"] = pp_otworow
@@ -63,10 +65,12 @@ while i >= 2:
 
 # Wypisanie wynikow
 print("Najlepsze parametry:")
-print(f"Odstep miedzy otworami: {najlepsze['odstep_wartosc']} m")
+print(f"Odstep miedzy otworami: lambda/{najlepsze['odstep']}, liczbowo {najlepsze['odstep_wartosc']} m")
 print(f"Przekatna otworu: {najlepsze['przekatna']} m")
+print(f"Pole powierzchni otworu: {najlepsze['bok']**2} m2")
 print(f"Liczba otworow w rzedzie: {najlepsze['otwory_w_rzedzie']}")
 print(f"Laczna liczba otworow: {najlepsze['otwory_wszystkie']}")
+print(f"Pole powierzchni plytki: {rozmiar_plyty**2} m2")
 print(f"Pole powierzchni otworow: {najlepsze['pp_otworow']} m2")
 print(f"Tlumienie: {najlepsze['tlumienie']} dB")
 
