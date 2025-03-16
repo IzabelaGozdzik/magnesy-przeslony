@@ -90,9 +90,9 @@ start_y = min_margines
 # Rysowanie otworow
 for i in range(najlepsze["otwory_w_rzedzie"]):
     for j in range(najlepsze["otwory_w_rzedzie"]):
-        x = start_x + i * (najlepsze["przekatna"] + najlepsze["odstep_wartosc"])
-        y = start_y + j * (najlepsze["przekatna"] + najlepsze["odstep_wartosc"])
-        ax.add_patch(patches.Rectangle((x, y), najlepsze["przekatna"], najlepsze["przekatna"], edgecolor='blue',
+        x = start_x + i * (najlepsze["bok"] + najlepsze["odstep_wartosc"])
+        y = start_y + j * (najlepsze["bok"] + najlepsze["odstep_wartosc"])
+        ax.add_patch(patches.Rectangle((x, y), najlepsze["bok"], najlepsze["bok"], edgecolor='blue',
                                        facecolor='none'))
 
 # Dodanie tytulu i etykiet osi
