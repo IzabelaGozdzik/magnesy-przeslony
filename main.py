@@ -20,11 +20,12 @@ rozmiar_plyty = 0.5  # Wymiar plyty [m]
 min_margines = 0.003  # Minimalna odleglosc od krawedzi [m]
 
 lam = round(c / f, 4)  # Dlugosc fali [m]
+print(lam)
 
 i = 10
 while i >= 2:
     odstep = lam / i  # Minimalny odstep miedzy otworami [m]
-    przekatna = round(lam / 2, 8)
+    przekatna = round(lam / (2*10**(min_tlumienie/20)), 8)
 
     while przekatna > 0:
         bok = round(przekatna / math.sqrt(2), 3)
@@ -44,20 +45,21 @@ while i >= 2:
             continue
         s_lambda_przez_2 = round(-20 * math.log10(math.sqrt(otwory_w_lambda_przez_2)), 4)
         pp_otworow = round(bok ** 2 * otwory_wszystkie, 4)
-        tlumienie = round(s_jednego + s_lambda_przez_2)
-        if tlumienie < 14:
+        tlumienie = round(s_jednego + s_lambda_przez_2, 4)
+        if tlumienie < min_tlumienie:
             przekatna -= 0.001
             continue
 
         if najlepsze["pp_otworow"] < pp_otworow:
-            najlepsze["odstep"] = i
-            najlepsze["odstep_wartosc"] = odstep
-            najlepsze["bok"] = bok
-            najlepsze["przekatna"] = round(przekatna,8)
+            najlepsze["odstep"] = round(i, 1)
+            najlepsze["odstep_wartosc"] = round(odstep, 4)
+            najlepsze["bok"] = round(bok, 4)
+            najlepsze["przekatna"] = round(przekatna, 4)
             najlepsze["otwory_w_rzedzie"] = int(otwory_w_rzedzie)
             najlepsze["otwory_wszystkie"] = int(otwory_wszystkie)
-            najlepsze["pp_otworow"] = pp_otworow
-            najlepsze["tlumienie"] = tlumienie
+            najlepsze["pp_otworow"] = round(pp_otworow,4)
+            najlepsze["tlumienie"] = round(tlumienie,4)
+            print(najlepsze)
 
         przekatna -= 0.001
 
@@ -67,10 +69,10 @@ while i >= 2:
 print("Najlepsze parametry:")
 print(f"Odstep miedzy otworami: lambda/{najlepsze['odstep']}, liczbowo {najlepsze['odstep_wartosc']} m")
 print(f"Przekatna otworu: {najlepsze['przekatna']} m")
-print(f"Pole powierzchni otworu: {najlepsze['bok']**2} m2")
+print(f"Pole powierzchni otworu: {najlepsze['bok'] ** 2} m2")
 print(f"Liczba otworow w rzedzie: {najlepsze['otwory_w_rzedzie']}")
 print(f"Laczna liczba otworow: {najlepsze['otwory_wszystkie']}")
-print(f"Pole powierzchni plytki: {rozmiar_plyty**2} m2")
+print(f"Pole powierzchni plytki: {rozmiar_plyty ** 2} m2")
 print(f"Pole powierzchni otworow: {najlepsze['pp_otworow']} m2")
 print(f"Tlumienie: {najlepsze['tlumienie']} dB")
 
@@ -90,7 +92,8 @@ for i in range(najlepsze["otwory_w_rzedzie"]):
     for j in range(najlepsze["otwory_w_rzedzie"]):
         x = start_x + i * (najlepsze["przekatna"] + najlepsze["odstep_wartosc"])
         y = start_y + j * (najlepsze["przekatna"] + najlepsze["odstep_wartosc"])
-        ax.add_patch(patches.Rectangle((x, y), najlepsze["przekatna"], najlepsze["przekatna"], edgecolor='blue', facecolor='none'))
+        ax.add_patch(patches.Rectangle((x, y), najlepsze["przekatna"], najlepsze["przekatna"], edgecolor='blue',
+                                       facecolor='none'))
 
 # Dodanie tytulu i etykiet osi
 ax.set_title(f"Rozmieszczenie {najlepsze['otwory_wszystkie']} otworow na przeslonie")
